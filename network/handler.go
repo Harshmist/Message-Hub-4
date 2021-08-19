@@ -2,14 +2,9 @@ package network
 
 import (
 	"bufio"
+	"message-hub/functions"
 	"net"
 	"strings"
-)
-
-var (
-	SubChannel = make(chan [2]interface{}, 2)
-	NewChannel = make(chan [2]interface{}, 2)
-	PubChannel = make(chan [2]interface{}, 2)
 )
 
 func RequestHandler(conn net.Conn, AddressChan chan string) {
@@ -24,28 +19,12 @@ func RequestHandler(conn net.Conn, AddressChan chan string) {
 		switch fields[0] {
 
 		case "SUB":
-			var subUser User
-			var subSlice [2]interface{}
-			roomName := fields[1]
-			subUser.Address = AddressChan
-			subSlice[0] = roomName
-			subSlice[1] = subUser
-			SubChannel <- subSlice
+			functions.NewSub(fields, AddressChan)
 
 		case "NEW":
-			roomName := fields[1]
-			var newRoom [2]interface{}
-			newRoom[0] = roomName
-			newRoom[1] = AddressChan
-			NewChannel <- newRoom
-
+			functions.NewRoom(fields, AddressChan)
 		case "PUB":
-			var msgSlice [2]interface{}
-			room := fields[1]
-			message := strings.Join(fields[2:], " ")
-			msgSlice[0] = room
-			msgSlice[1] = message
-			PubChannel <- msgSlice
+			functions.NewPub(fields, AddressChan)
 		}
 	}
 }

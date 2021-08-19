@@ -3,17 +3,9 @@ package network
 import (
 	"io"
 	"log"
+	"message-hub/variables"
 	"net"
 )
-
-var (
-	JoinChan = make(chan chan string)
-)
-
-type User struct {
-	Name    string
-	Address chan string
-}
 
 func TcpListener() {
 	listener, err := net.Listen("tcp", ":8000")
@@ -26,12 +18,14 @@ func TcpListener() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		io.WriteString(conn, "Welcome to the message hub!\n Write [CMD] for a list of commands\n")
+		io.WriteString(conn, "Welcome to the message hub!\n")
 		var AddressChan = make(chan string)
+		var user variables.User
+		user.Address = AddressChan
 
 		go RequestHandler(conn, AddressChan)
 		go Broadcaster(conn, AddressChan)
-		JoinChan <- AddressChan
+		variables.JoinChan <- user
 
 	}
 }

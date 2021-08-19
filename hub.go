@@ -1,36 +1,33 @@
 package main
 
 import (
-	"fmt"
 	"message-hub/network"
+	"message-hub/variables"
 )
 
 var (
-	allUsers []network.User
-	rooms    = make(map[string][]network.User, 10)
+	allUsers []variables.User
+	rooms    = make(map[string][]variables.User, 10)
 )
 
 func main() {
 	go network.TcpListener()
 	go func() {
-
 		for {
 			select {
-			case newUser := <-network.JoinChan:
-				var user network.User
-				user.Address = newUser
-				allUsers = append(allUsers, user)
-			case newRoom := <-network.NewChannel:
-				var creatingUser network.User
+			case newUser := <-variables.JoinChan:
+				allUsers = append(allUsers, newUser)
+			case newRoom := <-variables.NewChannel:
+				var creatingUser variables.User
 				creatingUser.Address = newRoom[1].(chan string)
 				newRoomName := newRoom[0].(string)
-				rooms[newRoomName] = make([]network.User, 0, 10)
+				rooms[newRoomName] = make([]variables.User, 0, 10)
 				rooms[newRoomName] = append(rooms[newRoomName], creatingUser)
-			case newSub := <-network.SubChannel:
+			case newSub := <-variables.SubChannel:
 				roomName := newSub[0].(string)
-				subUser := newSub[1].(network.User)
+				subUser := newSub[1].(variables.User)
 				rooms[roomName] = append(rooms[roomName], subUser)
-			case newMsg := <-network.PubChannel:
+			case newMsg := <-variables.PubChannel:
 				roomName := newMsg[0].(string)
 				message := newMsg[1].(string)
 
@@ -39,9 +36,8 @@ func main() {
 				}
 			}
 		}
-
 	}()
 
-	fmt.Scanln()
+	select {}
 
 }
