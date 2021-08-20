@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"message-hub/functions"
-	"message-hub/variables"
+	"message-hub/hub"
 	"net"
 	"strings"
 )
@@ -24,12 +23,12 @@ func TcpListener() {
 		}
 		io.WriteString(conn, "Welcome to the message hub!\n")
 		var AddressChan = make(chan string)
-		var user variables.User
+		var user hub.User
 		user.Address = AddressChan
 
 		go RequestHandler(conn, AddressChan)
 		go Broadcaster(conn, AddressChan)
-		variables.JoinChan <- user
+		hub.JoinChan <- user
 
 	}
 }
@@ -45,12 +44,12 @@ func RequestHandler(conn net.Conn, AddressChan chan string) {
 		switch fields[0] {
 
 		case "SUB":
-			functions.NewSub(fields, AddressChan)
+			hub.NewSub(fields, AddressChan)
 
 		case "NEW":
-			functions.NewRoom(fields, AddressChan)
+			hub.NewRoom(fields, AddressChan)
 		case "PUB":
-			functions.NewPub(fields, AddressChan)
+			hub.NewPub(fields, AddressChan)
 		}
 	}
 }

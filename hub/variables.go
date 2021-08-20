@@ -1,4 +1,4 @@
-package variables
+package hub
 
 var (
 	SubChannel = make(chan [2]interface{}, 2)
@@ -6,8 +6,3 @@ var (
 	PubChannel = make(chan [2]interface{}, 2)
 	JoinChan   = make(chan User)
 )
-
-type User struct {
-	Name    string
-	Address chan string
-}

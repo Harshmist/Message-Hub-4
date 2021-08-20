@@ -1,13 +1,13 @@
 package main
 
 import (
+	"message-hub/hub"
 	"message-hub/network"
-	"message-hub/variables"
 )
 
 var (
-	allUsers []variables.User
-	rooms    = make(map[string][]variables.User, 10)
+	allUsers []hub.User
+	rooms    = make(map[string][]hub.User, 10)
 )
 
 func main() {
@@ -15,19 +15,19 @@ func main() {
 	go func() {
 		for {
 			select {
-			case newUser := <-variables.JoinChan:
+			case newUser := <-hub.JoinChan:
 				allUsers = append(allUsers, newUser)
-			case newRoom := <-variables.NewChannel:
-				var creatingUser variables.User
+			case newRoom := <-hub.NewChannel:
+				var creatingUser hub.User
 				creatingUser.Address = newRoom[1].(chan string)
 				newRoomName := newRoom[0].(string)
-				rooms[newRoomName] = make([]variables.User, 0, 10)
+				rooms[newRoomName] = make([]hub.User, 0, 10)
 				rooms[newRoomName] = append(rooms[newRoomName], creatingUser)
-			case newSub := <-variables.SubChannel:
+			case newSub := <-hub.SubChannel:
 				roomName := newSub[0].(string)
-				subUser := newSub[1].(variables.User)
+				subUser := newSub[1].(hub.User)
 				rooms[roomName] = append(rooms[roomName], subUser)
-			case newMsg := <-variables.PubChannel:
+			case newMsg := <-hub.PubChannel:
 				roomName := newMsg[0].(string)
 				message := newMsg[1].(string)
 
