@@ -26,6 +26,7 @@ func NewRoom(fields []string, AddressChan chan string) {
 	newRoom[0] = roomName
 	newRoom[1] = AddressChan
 	NewChannel <- newRoom
+	Categories = append(Categories, roomName)
 }
 
 func NewPub(fields []string, AddressChan chan string) {
@@ -35,4 +36,13 @@ func NewPub(fields []string, AddressChan chan string) {
 	msgSlice[0] = room
 	msgSlice[1] = message
 	PubChannel <- msgSlice
+}
+
+func List(AddressChan chan string) {
+	var newString string
+	for _, v := range Categories {
+		newString = newString + v + " | "
+	}
+	sendString := "Available categories are: " + newString
+	AddressChan <- sendString
 }

@@ -21,13 +21,17 @@ func TcpListener() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		scanner := bufio.NewScanner(conn)
 		io.WriteString(conn, "Welcome to the message hub!\n")
+		io.WriteString(conn, "Server message: What is your name?\n")
+		scanner.Scan()
 		var AddressChan = make(chan string)
 		var user hub.User
+		user.Name = scanner.Text()
 		user.Address = AddressChan
 
-		go RequestHandler(conn, AddressChan)
-		go Broadcaster(conn, AddressChan)
+		go RequestHandler(conn, user)
+		go Broadcaster(conn, user)
 		hub.JoinChan <- user
 
 	}
@@ -42,7 +46,8 @@ func RequestHandler(conn net.Conn, AddressChan chan string) {
 			continue
 		}
 		switch fields[0] {
-
+		case "LIST":
+			hub.List(AddressChan)
 		case "SUB":
 			hub.NewSub(fields, AddressChan)
 
