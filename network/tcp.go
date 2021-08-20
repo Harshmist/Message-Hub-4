@@ -30,8 +30,8 @@ func TcpListener() {
 		user.Name = scanner.Text()
 		user.Address = AddressChan
 
-		go RequestHandler(conn, user)
-		go Broadcaster(conn, user)
+		go RequestHandler(conn, AddressChan)
+		go Broadcaster(conn, AddressChan)
 		hub.JoinChan <- user
 
 	}
