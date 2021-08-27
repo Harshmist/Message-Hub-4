@@ -30,13 +30,13 @@ func TcpListener() {
 		user.Name = scanner.Text()
 		user.Address = AddressChan
 
-		go RequestHandler(conn, AddressChan)
-		go Broadcaster(conn, AddressChan)
+		go RequestHandler(conn, user)
+		go Broadcaster(conn, user)
 		hub.JoinChan <- user
 
 	}
 }
-func RequestHandler(conn net.Conn, AddressChan chan string) {
+func RequestHandler(conn net.Conn, user hub.User) {
 	defer conn.Close()
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
@@ -47,22 +47,22 @@ func RequestHandler(conn net.Conn, AddressChan chan string) {
 		}
 		switch fields[0] {
 		case "LIST":
-			hub.List(AddressChan)
+			hub.List(user)
 		case "SUB":
-			hub.NewSub(fields, AddressChan)
+			hub.NewSub(fields, user)
 
 		case "NEW":
-			hub.NewRoom(fields, AddressChan)
+			hub.NewRoom(fields, user)
 		case "PUB":
-			hub.NewPub(fields, AddressChan)
+			hub.NewPub(fields, user)
 		}
 	}
 }
-func Broadcaster(conn net.Conn, AddressChan chan string) {
+func Broadcaster(conn net.Conn, user hub.User) {
 
 	for {
 		select {
-		case msg := <-AddressChan:
+		case msg := <-user.Address:
 			message := fmt.Sprintf("%v\n", msg)
 			io.WriteString(conn, message)
 		}
