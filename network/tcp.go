@@ -55,6 +55,11 @@ func RequestHandler(conn net.Conn, user hub.User) {
 			hub.NewRoom(fields, user)
 		case "PUB":
 			hub.NewPub(fields, user)
+
+		case "STOP":
+			user.Address <- "Closing connection"
+			io.WriteString(conn, "STOP")
+			conn.Close()
 		}
 	}
 }

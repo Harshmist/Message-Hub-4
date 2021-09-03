@@ -2,18 +2,20 @@ package hub
 
 import (
 	"fmt"
+	"message-hub/monitoring"
 	"net"
 	"strings"
 )
 
 var (
-	SubChannel = make(chan [2]interface{}, 2)
-	NewChannel = make(chan [2]interface{}, 2)
-	PubChannel = make(chan [2]interface{}, 2)
-	JoinChan   = make(chan User)
-	UDPChan    = make(chan [2]interface{}, 2)
-	allUsers   []User
-	rooms      = make(map[string][]User, 10)
+	SubChannel   = make(chan [2]interface{}, 2)
+	NewChannel   = make(chan [2]interface{}, 2)
+	PubChannel   = make(chan [2]interface{}, 2)
+	JoinChan     = make(chan User)
+	UDPChan      = make(chan [2]interface{}, 2)
+	requestsChan = make(chan bool)
+	allUsers     []User
+	rooms        = make(map[string][]User, 10)
 )
 
 type User struct {
@@ -83,6 +85,7 @@ func ChannelRouter() {
 		case newUser := <-JoinChan:
 			allUsers = append(allUsers, newUser)
 			fmt.Println("User connected")
+			monitoring.TotalUsers.Add(1)
 		case newRoom := <-NewChannel:
 			var creatingUser User
 			creatingUser = newRoom[1].(User)
@@ -107,6 +110,13 @@ func ChannelRouter() {
 					UDPMsg[1] = message
 					UDPChan <- UDPMsg
 				}
+			}
+		case completed := <-requestsChan:
+			if completed {
+				monitoring.TotalRequests.Add(1)
+			} else {
+				monitoring.TotalRequests.Add(1)
+				monitoring.FailedRequests.Add(1)
 			}
 		}
 	}
