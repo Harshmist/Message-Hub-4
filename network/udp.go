@@ -10,7 +10,7 @@ import (
 var users = make(map[string]string)
 
 func StartUDP() {
-
+	var user hub.User
 	service := "localhost:8002"
 
 	s, err := net.ResolveUDPAddr("udp4", service)
@@ -25,7 +25,6 @@ func StartUDP() {
 		return
 	}
 
-	var user hub.User
 	defer connection.Close()
 	buffer := make([]byte, 1024)
 	go UdpBroadcast(connection)

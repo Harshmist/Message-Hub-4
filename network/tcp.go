@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"message-hub/hub"
+	"message-hub/monitoring"
 	"net"
 	"strings"
 )
@@ -43,11 +44,14 @@ func RequestHandler(conn net.Conn, user hub.User) {
 		line := scanner.Text()
 		fields := strings.Fields(line)
 		if len(fields) < 1 {
+			monitoring.FailedRequest()
+			io.WriteString(conn, "Please use a command\n")
 			continue
 		}
 		switch fields[0] {
 		case "LIST":
 			hub.List(user)
+			monitoring.TotalRequests.Add(1)
 		case "SUB":
 			hub.NewSub(fields, user)
 
@@ -60,6 +64,11 @@ func RequestHandler(conn net.Conn, user hub.User) {
 			user.Address <- "Closing connection"
 			io.WriteString(conn, "STOP")
 			conn.Close()
+			monitoring.TotalRequests.Add(1)
+
+		default:
+			monitoring.FailedRequest()
+			io.WriteString(conn, "Command not recognised\n")
 		}
 	}
 }

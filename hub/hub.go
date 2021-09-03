@@ -8,14 +8,13 @@ import (
 )
 
 var (
-	SubChannel   = make(chan [2]interface{}, 2)
-	NewChannel   = make(chan [2]interface{}, 2)
-	PubChannel   = make(chan [2]interface{}, 2)
-	JoinChan     = make(chan User)
-	UDPChan      = make(chan [2]interface{}, 2)
-	requestsChan = make(chan bool)
-	allUsers     []User
-	rooms        = make(map[string][]User, 10)
+	SubChannel = make(chan [2]interface{}, 2)
+	NewChannel = make(chan [2]interface{}, 2)
+	PubChannel = make(chan [2]interface{}, 2)
+	JoinChan   = make(chan User)
+	UDPChan    = make(chan [2]interface{}, 2)
+	AllUsers   []User
+	rooms      = make(map[string][]User, 10)
 )
 
 type User struct {
@@ -83,7 +82,7 @@ func ChannelRouter() {
 	for {
 		select {
 		case newUser := <-JoinChan:
-			allUsers = append(allUsers, newUser)
+			AllUsers = append(AllUsers, newUser)
 			fmt.Println("User connected")
 			monitoring.TotalUsers.Add(1)
 		case newRoom := <-NewChannel:
@@ -92,14 +91,17 @@ func ChannelRouter() {
 			newRoomName := newRoom[0].(string)
 			rooms[newRoomName] = make([]User, 0, 10)
 			rooms[newRoomName] = append(rooms[newRoomName], creatingUser)
+			monitoring.TotalRequests.Add(1)
 			fmt.Println("new room created")
 		case newSub := <-SubChannel:
 			roomName := newSub[0].(string)
 			subUser := newSub[1].(User)
 			rooms[roomName] = append(rooms[roomName], subUser)
+			monitoring.TotalRequests.Add(1)
 		case newMsg := <-PubChannel:
 			roomName := newMsg[0].(string)
 			message := newMsg[1].(string)
+			monitoring.TotalRequests.Add(1)
 
 			for _, v := range rooms[roomName] {
 				if v.Address != nil {
@@ -110,13 +112,6 @@ func ChannelRouter() {
 					UDPMsg[1] = message
 					UDPChan <- UDPMsg
 				}
-			}
-		case completed := <-requestsChan:
-			if completed {
-				monitoring.TotalRequests.Add(1)
-			} else {
-				monitoring.TotalRequests.Add(1)
-				monitoring.FailedRequests.Add(1)
 			}
 		}
 	}
