@@ -53,6 +53,7 @@ func StartUDP() {
 			hub.NewPub(fields, user)
 		case "NICK":
 			addrString := addr.String()
+			
 			users[addrString] = fields[1]
 		}
 

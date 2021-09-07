@@ -48,6 +48,7 @@ func NewPub(fields []string, user User) {
 	var msgSlice [2]interface{}
 	var userName string
 	room := fields[1]
+	
 	if user.Name != "" {
 		userName = user.Name
 	} else {

@@ -10,8 +10,9 @@ var (
 	Uptime            = expvar.NewString("Application uptime")
 	TotalUsers        = expvar.NewInt("Total users")
 	TotalRequests     = expvar.NewInt("Total Requests")
-	FailedRequests    = expvar.NewInt("Total failed requests")
 	RequestsPerSecond = expvar.NewFloat("Requests per second")
+	FailedRequests    = expvar.NewInt("Total failed requests")
+	FailedPerSecond   = expvar.NewFloat("Failed requests per second")
 )
 
 func TimeMonitoring(startTime time.Time) {
@@ -25,6 +26,11 @@ func TimeMonitoring(startTime time.Time) {
 		requests := float64(TotalRequests.Value())
 		if requests != 0 {
 			RequestsPerSecond.Set(requests / float64(uptime.Seconds()))
+		}
+		//Failed per second
+		failed := float64(FailedRequests.Value())
+		if failed != 0 {
+			FailedPerSecond.Set(failed / float64(uptime.Seconds()))
 		}
 	}
 }
